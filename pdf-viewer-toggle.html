@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF 페이지 뷰어</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#202124;background:#f2f3f5}*{box-sizing:border-box}
+body{margin:0}header{position:sticky;top:0;background:white;border-bottom:1px solid #ddd;padding:12px;z-index:2}
+h1{font-size:1.1rem;margin:0 0 10px}.bar,.file{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+button,input{font:inherit;padding:7px 10px;border:1px solid #bbb;border-radius:7px;background:white;color:#222}
+button{cursor:pointer}button:disabled{opacity:.4;cursor:default}input[type=number]{width:72px}
+#status{text-align:center;margin:8px;font-size:.9rem}main{padding:16px 8px}
+#wrap{display:flex;justify-content:center;overflow:auto}canvas{display:block;max-width:100%;height:auto;background:white;box-shadow:0 2px 14px #0002}
+.note{max-width:800px;margin:12px auto;line-height:1.5;font-size:.88rem;color:#555}
+</style>
+</head>
+<body>
+<header>
+<h1>PDF 페이지 뷰어</h1>
+<div class="bar">
+<button id="prev" disabled>← 이전</button><label for="page">페이지</label><input id="page" type="number" min="1" value="1" disabled><span id="total">/ —</span><button id="next" disabled>다음 →</button>
+<button id="minus" disabled>−</button><span id="zoom">100%</span><button id="plus" disabled>+</button><button id="fit" disabled>화면 맞춤</button>
+</div>
+<div id="status" role="status">PDF를 불러오는 중입니다…</div>
+<div class="file"><label for="file">내 컴퓨터의 PDF 열기:</label><input id="file" type="file" accept=".pdf,application/pdf"></div>
+</header>
+<main><div id="wrap"><canvas id="canvas"></canvas></div>
+<p class="note">기본 PDF 파일명은 <b>book.pdf</b>이며 HTML과 같은 폴더에 둡니다. 마지막 페이지와 확대 비율은 이 브라우저에 저장됩니다. GitHub Pages와 로컬 서버의 저장 데이터는 서로 다릅니다. Windows에서 테스트할 때는 VS Code의 Live Server를 사용하세요.</p></main>
+<script type="module">
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+const $=id=>document.getElementById(id), canvas=$('canvas'),ctx=canvas.getContext('2d');
+let doc=null,pageNum=1,scale=1,task=null,seq=0,sourceKey='default',fitMode=false;
+const KEY='youtubebook_pdf_viewer_state_v1';
+function states(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}}}
+function save(){try{let s=states();s[sourceKey]={pageNum,scale};localStorage.setItem(KEY,JSON.stringify(s))}catch{}}
+function controls(){let ok=!!doc;$('prev').disabled=!ok||pageNum<=1;$('next').disabled=!ok||pageNum>=doc.numPages;$('page').disabled=!ok;$('page').max=ok?doc.numPages:1;$('page').value=pageNum;$('total').textContent=ok?'/ '+doc.numPages:'/ —';$('minus').disabled=!ok||scale<=.4;$('plus').disabled=!ok||scale>=3;$('fit').disabled=!ok;$('fit').textContent=fitMode?'100%로 보기':'화면 맞춤';$('zoom').textContent=Math.round(scale*100)+'%'}
+async function render(){if(!doc)return;let n=++seq;if(task){try{task.cancel()}catch{}task=null}$('status').textContent='페이지 '+pageNum+' 렌더링 중…';try{let p=await doc.getPage(pageNum);if(n!==seq)return;let v=p.getViewport({scale}),d=window.devicePixelRatio||1;canvas.width=Math.floor(v.width*d);canvas.height=Math.floor(v.height*d);canvas.style.width=Math.floor(v.width)+'px';canvas.style.height=Math.floor(v.height)+'px';task=p.render({canvasContext:ctx,viewport:v,transform:d!==1?[d,0,0,d,0,0]:null});await task.promise;if(n!==seq)return;$('status').textContent='페이지 '+pageNum+' / '+doc.numPages;controls();save()}catch(e){if(e?.name!=='RenderingCancelledException'){$('status').textContent='페이지 표시 오류: PDF 파일을 확인하세요.';console.error(e)}}}
+async function openPdf(data,key,isUrl=false){try{sourceKey=key;$('status').textContent='PDF를 여는 중입니다…';let loading=isUrl?pdfjsLib.getDocument(data):pdfjsLib.getDocument({data:await data.arrayBuffer()});doc=await loading.promise;let s=states()[sourceKey]||{};pageNum=Math.min(doc.numPages,Math.max(1,Number(s.pageNum)||1));scale=Math.min(3,Math.max(.4,Number(s.scale)||1));fitMode=false;controls();await render()}catch(e){console.error(e);doc=null;controls();$('status').textContent='PDF를 열 수 없습니다. book.pdf의 파일명과 위치를 확인하세요.'}}
+async function goToPage(n){if(!doc)return;pageNum=Math.max(1,Math.min(doc.numPages,n));if(fitMode)await applyFitScale();controls();render()}
+$('prev').onclick=()=>{if(pageNum>1)goToPage(pageNum-1)};$('next').onclick=()=>{if(doc&&pageNum<doc.numPages)goToPage(pageNum+1)};
+$('page').onchange=()=>{if(doc)goToPage(Number($('page').value)||1)};
+$('minus').onclick=()=>{fitMode=false;scale=Math.max(.4,+(scale-.1).toFixed(2));controls();render()};
+$('plus').onclick=()=>{fitMode=false;scale=Math.min(3,+(scale+.1).toFixed(2));controls();render()};
+async function applyFitScale(){if(!doc)return;let p=await doc.getPage(pageNum),v=p.getViewport({scale:1}),w=Math.max(240,$('wrap').clientWidth-16);scale=Math.min(3,Math.max(.4,w/v.width))}
+$('fit').onclick=async()=>{if(!doc)return;if(fitMode){fitMode=false;scale=1}else{fitMode=true;await applyFitScale()}controls();render()};
+$('file').onchange=async e=>{let f=e.target.files?.[0];if(f)await openPdf(f,'local:'+f.name+':'+f.size)};
+document.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement)return;if(e.key==='ArrowLeft')$('prev').click();if(e.key==='ArrowRight')$('next').click();if(e.key==='+'||e.key==='=')$('plus').click();if(e.key==='-')$('minus').click()});
+openPdf('./book.pdf','default',true);
+</script>
+</body></html>
