@@ -34,12 +34,14 @@
         <span class="text-slate-500">/ <span id="pageCount">0</span></span>
       </div>
 
-      <!-- 2. Zoom Controls (토글 버튼 적용) -->
+      <!-- 2. Zoom Controls ([100%로 보기], [폭 맞춤], [화면 맞춤] 버튼 분리) -->
       <div class="flex items-center gap-1 bg-slate-50 border border-slate-300 px-2 py-1.5 rounded flex-shrink-0">
         <button id="zoomOut" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">-</button>
         <span id="zoomLevel" class="w-12 text-center font-mono font-medium text-slate-600">100%</span>
         <button id="zoomIn" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">+</button>
-        <button id="zoomToggleBtn" class="ml-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition font-medium">100%로 보기</button>
+        <button id="zoom100Btn" class="ml-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition font-medium">100%</button>
+        <button id="fitWidthBtn" class="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition font-medium">폭맞춤</button>
+        <button id="fitPageBtn" class="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition font-medium">화면맞춤</button>
       </div>
 
       <!-- 3. File Open / Local Select -->
@@ -74,7 +76,6 @@
     let pageRendering = false;
     let pageNumPending = null;
     let scale = 1.0; // 기본 배율 100%
-    let isFitWidthState = false; // 토글 상태 (false: 100% 상태, true: 폭 맞춤 상태)
     
     const canvas = document.getElementById('pdfCanvas');
     const ctx = canvas.getContext('2d');
@@ -85,7 +86,6 @@
     const pageCountElem = document.getElementById('pageCount');
     const zoomLevelElem = document.getElementById('zoomLevel');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
-    const zoomToggleBtn = document.getElementById('zoomToggleBtn');
 
     // 1. 페이지 접속 시 GitHub에 있는 ABC.pdf를 기본으로 로드
     const defaultPdfUrl = './ABC.pdf'; 
@@ -194,42 +194,46 @@
       }
     });
 
-    // 확대 / 축소 (+, - 버튼 누를 시 토글 상태 해제 및 기본값 유지)
+    // 확대 / 축소 버튼
     document.getElementById('zoomIn').addEventListener('click', () => {
       scale = Math.min(scale + 0.2, 3.0);
-      isFitWidthState = false;
-      zoomToggleBtn.textContent = "폭 맞춤";
       queueRenderPage(pageNum);
     });
 
     document.getElementById('zoomOut').addEventListener('click', () => {
       scale = Math.max(scale - 0.2, 0.5);
-      isFitWidthState = false;
-      zoomToggleBtn.textContent = "폭 맞춤";
       queueRenderPage(pageNum);
     });
 
-    // [100%로 보기] <-> [폭 맞춤] 토글 버튼 기능
-    zoomToggleBtn.addEventListener('click', () => {
-      if (!pdfDoc) return;
+    // [100%] 버튼
+    document.getElementById('zoom100Btn').addEventListener('click', () => {
+      scale = 1.0;
+      queueRenderPage(pageNum);
+    });
 
-      if (!isFitWidthState) {
-        // 현재 100% 상태라면 -> 클릭 시 [폭 맞춤]으로 변경
-        pdfDoc.getPage(pageNum).then(function(page) {
-          const unscaledViewport = page.getViewport({ scale: 1.0 });
-          const containerWidth = pdfContainer.clientWidth - 40; // 여백 고려
-          scale = containerWidth / unscaledViewport.width;
-          isFitWidthState = true;
-          zoomToggleBtn.textContent = "100%로 보기";
-          queueRenderPage(pageNum);
-        });
-      } else {
-        // 현재 폭 맞춤 상태라면 -> 클릭 시 [100%로 보기]로 복귀
-        scale = 1.0;
-        isFitWidthState = false;
-        zoomToggleBtn.textContent = "폭 맞춤";
+    // [폭맞춤] 버튼 (가로 폭에 맞춤)
+    document.getElementById('fitWidthBtn').addEventListener('click', () => {
+      if (!pdfDoc) return;
+      pdfDoc.getPage(pageNum).then(function(page) {
+        const unscaledViewport = page.getViewport({ scale: 1.0 });
+        const containerWidth = pdfContainer.clientWidth - 40;
+        scale = containerWidth / unscaledViewport.width;
         queueRenderPage(pageNum);
-      }
+      });
+    });
+
+    // [화면맞춤] 버튼 (페이지 전체가 화면에 들어오도록 가로/세로 비율 맞춤)
+    document.getElementById('fitPageBtn').addEventListener('click', () => {
+      if (!pdfDoc) return;
+      pdfDoc.getPage(pageNum).then(function(page) {
+        const unscaledViewport = page.getViewport({ scale: 1.0 });
+        const containerWidth = pdfContainer.clientWidth - 40;
+        const containerHeight = 650; // 뷰어 컨테이너 기준 높이
+        const scaleWidth = containerWidth / unscaledViewport.width;
+        const scaleHeight = containerHeight / unscaledViewport.height;
+        scale = Math.min(scaleWidth, scaleHeight);
+        queueRenderPage(pageNum);
+      });
     });
   </script>
 </body>
