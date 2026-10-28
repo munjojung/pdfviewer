@@ -34,12 +34,12 @@
         <span class="text-slate-500">/ <span id="pageCount">0</span></span>
       </div>
 
-      <!-- 2. Zoom Controls -->
+      <!-- 2. Zoom Controls (토글 버튼 적용) -->
       <div class="flex items-center gap-1 bg-slate-50 border border-slate-300 px-2 py-1.5 rounded flex-shrink-0">
         <button id="zoomOut" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">-</button>
         <span id="zoomLevel" class="w-12 text-center font-mono font-medium text-slate-600">100%</span>
         <button id="zoomIn" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">+</button>
-        <button id="zoomReset" class="ml-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">100%로 보기</button>
+        <button id="zoomToggleBtn" class="ml-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition font-medium">100%로 보기</button>
       </div>
 
       <!-- 3. File Open / Local Select -->
@@ -74,7 +74,7 @@
     let pageRendering = false;
     let pageNumPending = null;
     let scale = 1.0; // 기본 배율 100%
-    let isFitWidth = false; // 토글 상태 추적용 변수
+    let isFitWidthState = false; // 토글 상태 (false: 100% 상태, true: 폭 맞춤 상태)
     
     const canvas = document.getElementById('pdfCanvas');
     const ctx = canvas.getContext('2d');
@@ -85,7 +85,7 @@
     const pageCountElem = document.getElementById('pageCount');
     const zoomLevelElem = document.getElementById('zoomLevel');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
-    const zoomResetBtn = document.getElementById('zoomReset');
+    const zoomToggleBtn = document.getElementById('zoomToggleBtn');
 
     // 1. 페이지 접속 시 GitHub에 있는 ABC.pdf를 기본으로 로드
     const defaultPdfUrl = './ABC.pdf'; 
@@ -194,40 +194,40 @@
       }
     });
 
-    // 확대 / 축소 기능 (+, - 버튼)
+    // 확대 / 축소 (+, - 버튼 누를 시 토글 상태 해제 및 기본값 유지)
     document.getElementById('zoomIn').addEventListener('click', () => {
       scale = Math.min(scale + 0.2, 3.0);
-      isFitWidth = false;
-      zoomResetBtn.textContent = "100%로 보기";
+      isFitWidthState = false;
+      zoomToggleBtn.textContent = "폭 맞춤";
       queueRenderPage(pageNum);
     });
 
     document.getElementById('zoomOut').addEventListener('click', () => {
       scale = Math.max(scale - 0.2, 0.5);
-      isFitWidth = false;
-      zoomResetBtn.textContent = "100%로 보기";
+      isFitWidthState = false;
+      zoomToggleBtn.textContent = "폭 맞춤";
       queueRenderPage(pageNum);
     });
 
-    // '100%로 보기' 및 '화면 폭만큼 확대 보기' 토글 기능
-    zoomResetBtn.addEventListener('click', () => {
+    // [100%로 보기] <-> [폭 맞춤] 토글 버튼 기능
+    zoomToggleBtn.addEventListener('click', () => {
       if (!pdfDoc) return;
 
-      if (!isFitWidth) {
-        // 1단계: 화면 폭 맞춤(Fit Width)으로 전환
+      if (!isFitWidthState) {
+        // 현재 100% 상태라면 -> 클릭 시 [폭 맞춤]으로 변경
         pdfDoc.getPage(pageNum).then(function(page) {
           const unscaledViewport = page.getViewport({ scale: 1.0 });
           const containerWidth = pdfContainer.clientWidth - 40; // 여백 고려
           scale = containerWidth / unscaledViewport.width;
-          isFitWidth = true;
-          zoomResetBtn.textContent = "폭 맞춤 해제";
+          isFitWidthState = true;
+          zoomToggleBtn.textContent = "100%로 보기";
           queueRenderPage(pageNum);
         });
       } else {
-        // 2단계: 기본 100% 비율로 복귀
+        // 현재 폭 맞춤 상태라면 -> 클릭 시 [100%로 보기]로 복귀
         scale = 1.0;
-        isFitWidth = false;
-        zoomResetBtn.textContent = "100%로 보기";
+        isFitWidthState = false;
+        zoomToggleBtn.textContent = "폭 맞춤";
         queueRenderPage(pageNum);
       }
     });
