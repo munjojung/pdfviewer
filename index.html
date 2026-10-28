@@ -16,10 +16,10 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Top Control Bar (항상 최상단에 한 줄로 중앙 정렬 및 줄바꿈 방지) -->
-  <header class="bg-white border-b border-slate-300 shadow-sm sticky top-0 z-50 px-6 py-3 w-full flex items-center justify-center overflow-x-auto whitespace-nowrap">
-    <!-- Controls Group (flex-nowrap을 주어 절대 줄바꿈되지 않고 한 줄로 유지되도록 설정) -->
-    <div class="flex items-center gap-4 text-xs flex-nowrap mx-auto">
+  <!-- Top Control Bar (페이지 상단 중앙 완전 고정 레이아웃) -->
+  <header class="bg-white border-b border-slate-300 shadow-sm sticky top-0 z-50 py-3 w-full flex items-center justify-center">
+    <!-- Controls Group (중앙 정렬 및 한 줄 유지) -->
+    <div class="flex items-center justify-center gap-3 text-xs flex-nowrap px-4 max-w-full overflow-x-auto">
       
       <!-- 1. Page Navigation ([다음] [이전] 페이지 번호 순서) -->
       <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded flex-shrink-0">
