@@ -21,7 +21,7 @@
     <!-- Controls Group (중앙 정렬 및 한 줄 유지) -->
     <div class="flex items-center justify-center gap-3 text-xs flex-nowrap px-4 max-w-full overflow-x-auto">
       
-      <!-- 1. Page Navigation ([페이지] [입력] [/ 전체] [이전] [다음] 순서) -->
+      <!-- 1. Page Navigation -->
       <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded flex-shrink-0">
         <span class="font-medium text-slate-600 mr-0.5">페이지</span>
         <input type="number" id="pageNumInput" value="1" min="1" class="w-12 text-center border border-slate-300 rounded py-0.5 font-mono">
@@ -207,26 +207,25 @@
       queueRenderPage(pageNum);
     });
 
-    // [폭 맞춤] <-> [100%로 보기] 토글 버튼 기능
+    // [폭 맞춤] <-> [100%로 보기] 토글 버튼 기능 (정확한 100% 고정)
     zoomToggleBtn.addEventListener('click', () => {
       if (!pdfDoc) return;
 
-      pdfDoc.getPage(pageNum).then(function(page) {
-        const unscaledViewport = page.getViewport({ scale: 1.0 });
-        const availableWidth = window.innerWidth - 80; 
-        const availableHeight = window.innerHeight - 140; 
-
-        if (zoomToggleBtn.textContent === "폭 맞춤") {
+      if (zoomToggleBtn.textContent === "폭 맞춤") {
+        // [폭 맞춤] 클릭 시: 가로 폭에 꽉 차게 맞춤
+        pdfDoc.getPage(pageNum).then(function(page) {
+          const unscaledViewport = page.getViewport({ scale: 1.0 });
+          const availableWidth = window.innerWidth - 80; 
           scale = availableWidth / unscaledViewport.width;
           zoomToggleBtn.textContent = "100%로 보기";
-        } else {
-          const scaleWidth = availableWidth / unscaledViewport.width;
-          const scaleHeight = availableHeight / unscaledViewport.height;
-          scale = Math.min(scaleWidth, scaleHeight);
-          zoomToggleBtn.textContent = "폭 맞춤";
-        }
+          queueRenderPage(pageNum);
+        });
+      } else {
+        // [100%로 보기] 클릭 시: 정확히 100% (scale = 1.0)로 설정
+        scale = 1.0;
+        zoomToggleBtn.textContent = "폭 맞춤";
         queueRenderPage(pageNum);
-      });
+      }
     });
   </script>
 </body>
