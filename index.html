@@ -14,47 +14,58 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center space-x-3">
-      <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg">
-        <i class="fa-solid fa-file-pdf text-xl"></i>
-      </div>
-      <div>
-        <h1 class="text-lg font-bold text-white">GitHub PDF Viewer</h1>
-        <p class="text-xs text-slate-400">기본 ABC.pdf 로드 및 로컬 PDF 파일 지원</p>
-      </div>
+  <!-- Top Control Bar (상단 통합 제어 바) -->
+  <header class="bg-white border-b border-slate-300 shadow-sm sticky top-0 z-50 px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center space-x-2">
+      <span class="font-bold text-slate-700 text-sm">PDF 뷰어</span>
     </div>
 
-    <!-- Controls -->
-    <div class="flex items-center gap-3">
-      <!-- Local File Input -->
-      <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium px-4 py-2.5 rounded-lg transition flex items-center gap-2">
-        <i class="fa-solid fa-folder-open text-indigo-400"></i>
-        <span>다른 PDF 열기 (로컬)</span>
-        <input type="file" id="localFileInput" accept="application/pdf" class="hidden">
-      </label>
+    <!-- Controls Group -->
+    <div class="flex flex-wrap items-center gap-3 text-xs">
+      <!-- Page Navigation ([다음] [이전] 버튼 순서 변경) -->
+      <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded">
+        <button id="nextPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
+          다음<i class="fa-solid fa-caret-right ml-1"></i>
+        </button>
+        <button id="prevPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
+          <i class="fa-solid fa-caret-left mr-1"></i>이전
+        </button>
+        <span class="ml-2 font-medium text-slate-600">페이지</span>
+        <input type="number" id="pageNumInput" value="1" min="1" class="w-12 text-center border border-slate-300 rounded py-0.5 font-mono">
+        <span class="text-slate-500">/ <span id="pageCount">0</span></span>
+      </div>
 
-      <!-- Page Navigation -->
-      <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
-        <button id="prevPage" class="p-1 hover:text-indigo-400 transition"><i class="fa-solid fa-chevron-left"></i></button>
-        <span class="font-mono"><span id="pageNum">1</span> / <span id="pageCount">-</span></span>
-        <button id="nextPage" class="p-1 hover:text-indigo-400 transition"><i class="fa-solid fa-chevron-right"></i></button>
+      <!-- Zoom Controls -->
+      <div class="flex items-center gap-1 bg-slate-50 border border-slate-300 px-2 py-1.5 rounded">
+        <button id="zoomOut" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">-</button>
+        <span id="zoomLevel" class="w-12 text-center font-mono font-medium text-slate-600">100%</span>
+        <button id="zoomIn" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">+</button>
+        <button id="zoomReset" class="ml-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">100%로 보기</button>
+      </div>
+
+      <!-- File Open / Local Select -->
+      <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 px-2.5 py-1 rounded">
+        <span class="font-medium text-slate-600">PDF 열기</span>
+        <label class="cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 px-3 py-1 rounded shadow-sm text-slate-700 transition font-medium">
+          파일 선택
+          <input type="file" id="localFileInput" accept="application/pdf" class="hidden">
+        </label>
+        <span id="fileNameDisplay" class="text-slate-500 italic">선택된 파일 없음</span>
       </div>
     </div>
   </header>
 
-  <!-- Main Viewer Area -->
-  <main class="flex-1 max-w-5xl w-full mx-auto p-6 flex flex-col items-center justify-center">
-    <div id="pdfContainer" class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 overflow-auto max-h-[80vh] flex items-center justify-center relative w-full min-h-[600px]">
-      <canvas id="pdfCanvas" class="shadow-lg max-w-full h-auto"></canvas>
+  <!-- Main Viewer Canvas Area -->
+  <main class="flex-1 w-full p-6 flex flex-col items-center justify-start overflow-auto">
+    <div id="pdfContainer" class="bg-white border border-slate-300 shadow-md rounded p-4 relative flex items-center justify-center min-h-[700px] min-w-[500px]">
+      <canvas id="pdfCanvas" class="shadow"></canvas>
       
       <!-- Loading Indicator -->
-      <div id="loadingOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
-        <i class="fa-solid fa-spinner fa-spin text-indigo-500 text-3xl"></i>
-        <p class="text-xs text-slate-300 font-medium" id="loadingText">GitHub에서 기본 PDF(ABC.pdf)를 불러오는 중입니다...</p>
+      <div id="loadingOverlay" class="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-20">
+        <i class="fa-solid fa-spinner fa-spin text-indigo-600 text-3xl"></i>
+        <p class="text-xs text-slate-600 font-medium" id="loadingText">GitHub에서 기본 PDF(ABC.pdf)를 불러오는 중입니다...</p>
       </div>
     </div>
   </main>
@@ -70,15 +81,20 @@
     const ctx = canvas.getContext('2d');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
+    const pageNumInput = document.getElementById('pageNumInput');
+    const pageCountElem = document.getElementById('pageCount');
+    const zoomLevelElem = document.getElementById('zoomLevel');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
 
     // 1. 페이지 접속 시 GitHub에 있는 ABC.pdf를 기본으로 로드
     const defaultPdfUrl = './ABC.pdf'; 
-    loadPdf(defaultPdfUrl, "GitHub 기본 ABC.pdf 로딩 완료");
+    loadPdf(defaultPdfUrl);
 
     // 2. 로컬 파일 선택 시 처리
     document.getElementById('localFileInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file && file.type === 'application/pdf') {
+        fileNameDisplay.textContent = file.name;
         const fileReader = new FileReader();
         loadingOverlay.classList.remove('hidden');
         loadingText.textContent = `로컬 파일(${file.name})을 불러오는 중입니다...`;
@@ -92,17 +108,17 @@
     });
 
     // PDF 로드 함수 (URL 방식 - GitHub용)
-    function loadPdf(url, successMessage) {
+    function loadPdf(url) {
       loadingOverlay.classList.remove('hidden');
       pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
         pdfDoc = pdfDoc_;
-        document.getElementById('pageCount').textContent = pdfDoc.numPages;
+        pageCountElem.textContent = pdfDoc.numPages;
         pageNum = 1;
         renderPage(pageNum);
         loadingOverlay.classList.add('hidden');
       }).catch(function(error) {
         console.error('PDF Load Error:', error);
-        loadingText.innerHTML = `<span class="text-red-400">PDF 파일을 불러오지 못했습니다.<br>ABC.pdf 파일이 GitHub 저장소 루트에 있는지 확인해주세요.</span>`;
+        loadingText.innerHTML = `<span class="text-red-500">PDF 파일을 불러오지 못했습니다.<br>ABC.pdf 파일이 저장소 루트에 있는지 확인해주세요.</span>`;
       });
     }
 
@@ -110,13 +126,13 @@
     function loadPdfData(data) {
       pdfjsLib.getDocument({ data: data }).promise.then(function(pdfDoc_) {
         pdfDoc = pdfDoc_;
-        document.getElementById('pageCount').textContent = pdfDoc.numPages;
+        pageCountElem.textContent = pdfDoc.numPages;
         pageNum = 1;
         renderPage(pageNum);
         loadingOverlay.classList.add('hidden');
       }).catch(function(error) {
         console.error('PDF Data Load Error:', error);
-        loadingText.innerHTML = `<span class="text-red-400">로컬 PDF 파일을 읽어오는 중 오류가 발생했습니다.</span>`;
+        loadingText.innerHTML = `<span class="text-red-500">로컬 PDF 파일을 읽어오는 중 오류가 발생했습니다.</span>`;
       });
     }
 
@@ -142,7 +158,7 @@
           }
         });
       });
-      document.getElementById('pageNum').textContent = num;
+      pageNumInput.value = num;
     }
 
     function queueRenderPage(num) {
@@ -153,6 +169,7 @@
       }
     }
 
+    // 이벤트 리스너 연결
     document.getElementById('prevPage').addEventListener('click', () => {
       if (pageNum <= 1) return;
       pageNum--;
@@ -162,6 +179,35 @@
     document.getElementById('nextPage').addEventListener('click', () => {
       if (pageNum >= pdfDoc.numPages) return;
       pageNum++;
+      queueRenderPage(pageNum);
+    });
+
+    pageNumInput.addEventListener('change', (e) => {
+      let num = parseInt(e.target.value);
+      if (num >= 1 && num <= pdfDoc.numPages) {
+        pageNum = num;
+        queueRenderPage(pageNum);
+      } else {
+        pageNumInput.value = pageNum;
+      }
+    });
+
+    // 확대 / 축소 기능
+    document.getElementById('zoomIn').addEventListener('click', () => {
+      scale = Math.min(scale + 0.2, 3.0);
+      zoomLevelElem.textContent = `${Math.round(scale * 100)}%`;
+      queueRenderPage(pageNum);
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', () => {
+      scale = Math.max(scale - 0.2, 0.5);
+      zoomLevelElem.textContent = `${Math.round(scale * 100)}%`;
+      queueRenderPage(pageNum);
+    });
+
+    document.getElementById('zoomReset').addEventListener('click', () => {
+      scale = 1.0;
+      zoomLevelElem.textContent = `${Math.round(scale * 100)}%`;
       queueRenderPage(pageNum);
     });
   </script>
