@@ -16,38 +16,34 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Top Control Bar (상단 통합 제어 바) -->
-  <header class="bg-white border-b border-slate-300 shadow-sm sticky top-0 z-50 px-6 py-3 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center space-x-2">
-      <span class="font-bold text-slate-700 text-sm">PDF 뷰어</span>
-    </div>
-
-    <!-- Controls Group -->
-    <div class="flex flex-wrap items-center gap-3 text-xs">
-      <!-- Page Navigation ([페이지] 글자와 입력 칸이 먼저 나오고, 그 뒤에 [이전], [다음] 버튼 배치) -->
-      <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded">
-        <span class="font-medium text-slate-600 mr-1">페이지</span>
-        <input type="number" id="pageNumInput" value="1" min="1" class="w-12 text-center border border-slate-300 rounded py-0.5 font-mono">
-        <span class="text-slate-500 mr-2">/ <span id="pageCount">0</span></span>
-        
-        <button id="prevPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
-          <i class="fa-solid fa-caret-left mr-1"></i>이전
-        </button>
+  <!-- Top Control Bar (항상 최상단에 한 줄로 중앙 정렬 및 줄바꿈 방지) -->
+  <header class="bg-white border-b border-slate-300 shadow-sm sticky top-0 z-50 px-6 py-3 w-full flex items-center justify-center overflow-x-auto whitespace-nowrap">
+    <!-- Controls Group (flex-nowrap을 주어 절대 줄바꿈되지 않고 한 줄로 유지되도록 설정) -->
+    <div class="flex items-center gap-4 text-xs flex-nowrap mx-auto">
+      
+      <!-- 1. Page Navigation ([다음] [이전] 페이지 번호 순서) -->
+      <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded flex-shrink-0">
         <button id="nextPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
           다음<i class="fa-solid fa-caret-right ml-1"></i>
         </button>
+        <button id="prevPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
+          <i class="fa-solid fa-caret-left mr-1"></i>이전
+        </button>
+        <span class="ml-2 font-medium text-slate-600">페이지</span>
+        <input type="number" id="pageNumInput" value="1" min="1" class="w-12 text-center border border-slate-300 rounded py-0.5 font-mono">
+        <span class="text-slate-500">/ <span id="pageCount">0</span></span>
       </div>
 
-      <!-- Zoom Controls -->
-      <div class="flex items-center gap-1 bg-slate-50 border border-slate-300 px-2 py-1.5 rounded">
+      <!-- 2. Zoom Controls -->
+      <div class="flex items-center gap-1 bg-slate-50 border border-slate-300 px-2 py-1.5 rounded flex-shrink-0">
         <button id="zoomOut" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">-</button>
         <span id="zoomLevel" class="w-12 text-center font-mono font-medium text-slate-600">100%</span>
         <button id="zoomIn" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">+</button>
         <button id="zoomReset" class="ml-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">100%로 보기</button>
       </div>
 
-      <!-- File Open / Local Select -->
-      <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 px-2.5 py-1 rounded">
+      <!-- 3. File Open / Local Select -->
+      <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 px-2.5 py-1 rounded flex-shrink-0">
         <span class="font-medium text-slate-600">PDF 열기</span>
         <label class="cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 px-3 py-1 rounded shadow-sm text-slate-700 transition font-medium">
           파일 선택
@@ -55,6 +51,7 @@
         </label>
         <span id="fileNameDisplay" class="text-slate-500 italic">선택된 파일 없음</span>
       </div>
+
     </div>
   </header>
 
