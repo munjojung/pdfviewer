@@ -21,17 +21,17 @@
     <!-- Controls Group (중앙 정렬 및 한 줄 유지) -->
     <div class="flex items-center justify-center gap-3 text-xs flex-nowrap px-4 max-w-full overflow-x-auto">
       
-      <!-- 1. Page Navigation ([페이지] [입력] [/ 전체] [다음] [이전] 순서) -->
+      <!-- 1. Page Navigation ([페이지] [입력] [/ 전체] [이전] [다음] 순서) -->
       <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded flex-shrink-0">
         <span class="font-medium text-slate-600 mr-0.5">페이지</span>
         <input type="number" id="pageNumInput" value="1" min="1" class="w-12 text-center border border-slate-300 rounded py-0.5 font-mono">
         <span class="text-slate-500 mr-2">/ <span id="pageCount">0</span></span>
         
-        <button id="nextPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
-          다음<i class="fa-solid fa-caret-right ml-1"></i>
-        </button>
         <button id="prevPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
           <i class="fa-solid fa-caret-left mr-1"></i>이전
+        </button>
+        <button id="nextPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
+          다음<i class="fa-solid fa-caret-right ml-1"></i>
         </button>
       </div>
 
