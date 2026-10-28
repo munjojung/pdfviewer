@@ -21,7 +21,7 @@
     <!-- Controls Group (중앙 정렬 및 한 줄 유지) -->
     <div class="flex items-center justify-center gap-3 text-xs flex-nowrap px-4 max-w-full overflow-x-auto">
       
-      <!-- 1. Page Navigation ([다음] [이전] 페이지 번호 순서) -->
+      <!-- 1. Page Navigation -->
       <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded flex-shrink-0">
         <button id="nextPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
           다음<i class="fa-solid fa-caret-right ml-1"></i>
@@ -34,7 +34,7 @@
         <span class="text-slate-500">/ <span id="pageCount">0</span></span>
       </div>
 
-      <!-- 2. Zoom Controls (폭 맞춤 <-> 100%로 보기 토글 버튼) -->
+      <!-- 2. Zoom Controls -->
       <div class="flex items-center gap-1 bg-slate-50 border border-slate-300 px-2 py-1.5 rounded flex-shrink-0">
         <button id="zoomOut" class="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 font-bold transition">-</button>
         <span id="zoomLevel" class="w-12 text-center font-mono font-medium text-slate-600">100%</span>
@@ -55,9 +55,9 @@
     </div>
   </header>
 
-  <!-- Main Viewer Canvas Area -->
-  <main class="flex-1 w-full p-6 flex flex-col items-center justify-start overflow-auto">
-    <div id="pdfContainer" class="bg-white border border-slate-300 shadow-md rounded p-4 relative flex items-center justify-center min-h-[700px] min-w-[500px] w-full max-w-5xl">
+  <!-- Main Viewer Canvas Area (최대 너비 제한을 없애고 화면 전체 활용) -->
+  <main class="flex-1 w-full p-4 flex flex-col items-center justify-start overflow-auto">
+    <div id="pdfContainer" class="bg-white border border-slate-300 shadow-md rounded p-4 relative flex items-center justify-center min-h-[700px] w-full">
       <canvas id="pdfCanvas" class="shadow"></canvas>
       
       <!-- Loading Indicator -->
@@ -193,36 +193,36 @@
       }
     });
 
-    // 확대 / 축소 (+, - 버튼 누를 시 기본 토글 상태 초기화)
+    // 확대 / 축소 (+, - 버튼)
     document.getElementById('zoomIn').addEventListener('click', () => {
-      scale = Math.min(scale + 0.2, 3.0);
+      scale = Math.min(scale + 0.2, 5.0);
       zoomToggleBtn.textContent = "폭 맞춤";
       queueRenderPage(pageNum);
     });
 
     document.getElementById('zoomOut').addEventListener('click', () => {
-      scale = Math.max(scale - 0.2, 0.5);
+      scale = Math.max(scale - 0.2, 0.2);
       zoomToggleBtn.textContent = "폭 맞춤";
       queueRenderPage(pageNum);
     });
 
-    // [폭 맞춤] <-> [100%로 보기(세로/가로 전체 화면 맞춤)] 토글 버튼 기능
+    // [폭 맞춤] <-> [100%로 보기] 토글 버튼 기능
     zoomToggleBtn.addEventListener('click', () => {
       if (!pdfDoc) return;
 
       pdfDoc.getPage(pageNum).then(function(page) {
         const unscaledViewport = page.getViewport({ scale: 1.0 });
-        const containerWidth = pdfContainer.clientWidth - 40;
-        const containerHeight = 650; // 뷰어 컨테이너 기준 높이
+        const availableWidth = window.innerWidth - 80; // 좌우 여백 제외한 가로 공간
+        const availableHeight = window.innerHeight - 140; // 상단 바 및 여백 제외한 세로 공간
 
         if (zoomToggleBtn.textContent === "폭 맞춤") {
-          // 1. [폭 맞춤] 클릭 시: 가로가 화면에 꽉 차게 (비율 상관없이 폭 기준)
-          scale = containerWidth / unscaledViewport.width;
+          // 1. [폭 맞춤] 클릭 시: 브라우저 가로 폭에 꽉 차게 확대
+          scale = availableWidth / unscaledViewport.width;
           zoomToggleBtn.textContent = "100%로 보기";
         } else {
-          // 2. [100%로 보기] 클릭 시: 세로와 가로 전체가 한눈에 들어오도록 페이지 전체를 화면에 맞춤
-          const scaleWidth = containerWidth / unscaledViewport.width;
-          const scaleHeight = containerHeight / unscaledViewport.height;
+          // 2. [100%로 보기] 클릭 시: 전체 페이지가 한눈에 들어오도록 화면에 맞춤
+          const scaleWidth = availableWidth / unscaledViewport.width;
+          const scaleHeight = availableHeight / unscaledViewport.height;
           scale = Math.min(scaleWidth, scaleHeight);
           zoomToggleBtn.textContent = "폭 맞춤";
         }
