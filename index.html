@@ -24,17 +24,18 @@
 
     <!-- Controls Group -->
     <div class="flex flex-wrap items-center gap-3 text-xs">
-      <!-- Page Navigation ([다음] [이전] 버튼 순서 변경) -->
+      <!-- Page Navigation ([페이지] 글자와 입력 칸이 먼저 나오고, 그 뒤에 [이전], [다음] 버튼 배치) -->
       <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-300 px-2.5 py-1.5 rounded">
-        <button id="nextPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
-          다음<i class="fa-solid fa-caret-right ml-1"></i>
-        </button>
+        <span class="font-medium text-slate-600 mr-1">페이지</span>
+        <input type="number" id="pageNumInput" value="1" min="1" class="w-12 text-center border border-slate-300 rounded py-0.5 font-mono">
+        <span class="text-slate-500 mr-2">/ <span id="pageCount">0</span></span>
+        
         <button id="prevPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
           <i class="fa-solid fa-caret-left mr-1"></i>이전
         </button>
-        <span class="ml-2 font-medium text-slate-600">페이지</span>
-        <input type="number" id="pageNumInput" value="1" min="1" class="w-12 text-center border border-slate-300 rounded py-0.5 font-mono">
-        <span class="text-slate-500">/ <span id="pageCount">0</span></span>
+        <button id="nextPage" class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-slate-600 transition">
+          다음<i class="fa-solid fa-caret-right ml-1"></i>
+        </button>
       </div>
 
       <!-- Zoom Controls -->
